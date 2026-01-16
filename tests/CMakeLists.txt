@@ -52,6 +52,7 @@ set(SPDLOG_UTESTS_SOURCES
     test_bin_to_hex.cpp
     test_ringbuffer.cpp
     test_timezone.cpp
+    test_data_masker.cpp
 )
 
 if(NOT SPDLOG_NO_EXCEPTIONS)

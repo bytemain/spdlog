@@ -27,6 +27,7 @@ void custom_flags_example();
 void file_events_example();
 void replace_default_logger_example();
 void mdc_example();
+void data_masking_example();
 
 #include "spdlog/spdlog.h"
 #include "spdlog/cfg/env.h"   // support for loading levels from the environment variable
@@ -86,6 +87,7 @@ int main(int, char *[]) {
         file_events_example();
         replace_default_logger_example();
         mdc_example();
+        data_masking_example();
 
         // Flush all *registered* loggers using a worker thread every 3 seconds.
         // note: registered loggers *must* be thread safe for this to work correctly!
@@ -399,3 +401,45 @@ void mdc_example() {
     // if TLS feature is disabled
 }
 #endif
+
+// Data masking example - masks sensitive information in log messages
+// Supports phone numbers, emails, ID cards, bank cards, passwords, tokens, and JWTs
+#include "spdlog/data_masker.h"
+void data_masking_example() {
+    // Create a masker with all built-in rules
+    auto masker = std::make_shared<spdlog::data_masker>();
+    masker->add_all_builtin_rules();
+
+    // Create a console sink
+    auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+
+    // Create formatter with masking - using %* for masked message
+    // Note: Use %* instead of %M (which is for minutes)
+    auto formatter = spdlog::make_masked_formatter(masker, "[%Y-%m-%d %H:%M:%S] [%l] %*");
+    console_sink->set_formatter(std::move(formatter));
+
+    auto logger = std::make_shared<spdlog::logger>("masked_logger", console_sink);
+    logger->set_level(spdlog::level::info);
+
+    logger->info("--- Data Masking Example ---");
+
+    // Phone number masking: 13812345678 -> 138****5678
+    logger->info("User phone number is 13812345678");
+
+    // Email masking: test@example.com -> t***@example.com
+    logger->info("User email is test@example.com");
+
+    // JWT masking: preserves header, masks payload and signature
+    logger->info("Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U");
+
+    // Password masking: password=xxx -> password=******
+    logger->info("Config: password=mysecretpass");
+
+    // Token masking: token=xxx -> token=******
+    logger->info("API secret=sk_live_abcdefghijklmnop");
+
+    // Multiple sensitive data in one message
+    logger->info("User 13812345678 (test@example.com) logged in");
+
+    logger->info("--- End of Data Masking Example ---");
+}
