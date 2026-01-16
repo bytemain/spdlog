@@ -74,6 +74,19 @@ TEST_CASE("data_masker-token", "[data_masker]") {
     REQUIRE(masker.mask("access_token=Bearer_xyz") == "access_token=******");
 }
 
+TEST_CASE("data_masker-jwt", "[data_masker]") {
+    data_masker masker;
+    masker.add_jwt_rule();
+
+    // Standard JWT token
+    std::string jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U";
+    std::string expected = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.******.******";
+    REQUIRE(masker.mask(jwt) == expected);
+
+    // JWT in a sentence
+    REQUIRE(masker.mask("Bearer " + jwt) == "Bearer " + expected);
+}
+
 TEST_CASE("data_masker-custom_rule", "[data_masker]") {
     data_masker masker;
 

@@ -79,13 +79,23 @@ public:
                         [](const std::smatch &m) { return m[1].str() + "******"; });
     }
 
+    // Add built-in rule for JWT (JSON Web Tokens)
+    // Masks the payload and signature: header.payload.signature -> header.******.******
+    data_masker &add_jwt_rule() {
+        return add_rule("jwt", R"(\b(ey[A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\b)",
+                        [](const std::smatch &m) { return m[1].str() + ".******.******"; });
+    }
+
     // Add all built-in rules
+    // Note: JWT rule is added before token rule to ensure JWTs are properly masked
+    // before the generic token rule could match them
     data_masker &add_all_builtin_rules() {
         add_phone_rule();
         add_email_rule();
         add_id_card_rule();
         add_bank_card_rule();
         add_password_rule();
+        add_jwt_rule();  // JWT before token to properly mask JWT format
         add_token_rule();
         return *this;
     }
