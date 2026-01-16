@@ -104,6 +104,7 @@ public:
     }
 
     // Apply masking to a string_view and return the masked string
+    // Note: String conversion is required because std::regex only works with std::string
     std::string mask(string_view_t input) const {
         return mask(std::string(input.data(), input.size()));
     }
@@ -194,7 +195,7 @@ inline std::unique_ptr<pattern_formatter> make_masked_formatter(
     std::shared_ptr<data_masker> masker,
     const std::string &pattern = "[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] %M",
     pattern_time_type time_type = pattern_time_type::local) {
-    auto formatter = details::make_unique<pattern_formatter>();
+    auto formatter = details::make_unique<pattern_formatter>(pattern, time_type);
     formatter->add_flag<masked_v_formatter>('M', std::move(masker));
     formatter->set_pattern(pattern);
     return formatter;
