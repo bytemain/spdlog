@@ -163,7 +163,7 @@ private:
 };
 
 // Custom flag formatter that masks sensitive data in log messages
-// Usage: formatter->add_flag<masked_v_formatter>('M', masker).set_pattern("[%l] %M");
+// Usage: formatter->add_flag<masked_v_formatter>('*', masker).set_pattern("[%l] %*");
 class SPDLOG_API masked_v_formatter : public custom_flag_formatter {
 public:
     explicit masked_v_formatter(std::shared_ptr<data_masker> masker)
@@ -190,13 +190,14 @@ private:
 };
 
 // Helper function to create a pattern formatter with masking enabled
-// The masked message will use the 'M' flag instead of 'v'
+// The masked message will use the '*' flag instead of 'v'
+// Note: '%*' is used for masked message (do not use '%M' as it conflicts with minutes)
 inline std::unique_ptr<pattern_formatter> make_masked_formatter(
     std::shared_ptr<data_masker> masker,
-    const std::string &pattern = "[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] %M",
+    const std::string &pattern = "[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] %*",
     pattern_time_type time_type = pattern_time_type::local) {
-    auto formatter = details::make_unique<pattern_formatter>(pattern, time_type);
-    formatter->add_flag<masked_v_formatter>('M', std::move(masker));
+    auto formatter = details::make_unique<pattern_formatter>(time_type);
+    formatter->add_flag<masked_v_formatter>('*', std::move(masker));
     formatter->set_pattern(pattern);
     return formatter;
 }

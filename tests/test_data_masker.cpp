@@ -135,8 +135,8 @@ TEST_CASE("masked_v_formatter-basic", "[data_masker]") {
     masker->add_email_rule();
 
     auto formatter = std::make_unique<spdlog::pattern_formatter>();
-    formatter->add_flag<masked_v_formatter>('M', masker);
-    formatter->set_pattern("%M");
+    formatter->add_flag<masked_v_formatter>('*', masker);
+    formatter->set_pattern("%*");
 
     std::string logger_name = "test";
     spdlog::details::log_msg msg(logger_name, spdlog::level::info,
@@ -161,8 +161,8 @@ TEST_CASE("masked_v_formatter-clone", "[data_masker]") {
     masker->add_phone_rule();
 
     auto formatter1 = std::make_shared<spdlog::pattern_formatter>();
-    formatter1->add_flag<masked_v_formatter>('M', masker);
-    formatter1->set_pattern("%M");
+    formatter1->add_flag<masked_v_formatter>('*', masker);
+    formatter1->set_pattern("%*");
 
     auto formatter2 = formatter1->clone();
 
@@ -181,7 +181,7 @@ TEST_CASE("make_masked_formatter", "[data_masker]") {
     auto masker = std::make_shared<data_masker>();
     masker->add_phone_rule();
 
-    auto formatter = spdlog::make_masked_formatter(masker, "%M");
+    auto formatter = spdlog::make_masked_formatter(masker, "%*");
 
     std::string logger_name = "test";
     spdlog::details::log_msg msg(logger_name, spdlog::level::info, "Number: 13812345678");
@@ -207,7 +207,7 @@ TEST_CASE("masked_formatter-with_logger", "[data_masker]") {
     masker->add_phone_rule();
     masker->add_password_rule();
 
-    auto formatter = spdlog::make_masked_formatter(masker, "%M");
+    auto formatter = spdlog::make_masked_formatter(masker, "%*");
     sink->set_formatter(std::move(formatter));
 
     auto logger = std::make_shared<spdlog::logger>("test_logger", sink);
